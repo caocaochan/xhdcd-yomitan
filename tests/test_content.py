@@ -14,9 +14,14 @@ def walk(value):
 
 
 def header_badges(entry):
-    header = next(value for value in walk(entry.glossary)
-                  if isinstance(value, dict) and value.get("data", {}).get("content") == "header")
-    return [(value.get("data", {}).get("content"), value.get("content")) for value in header["content"]]
+    root = entry.glossary[0]["content"]
+    assert root["tag"] == "span" and root["data"]["content"] == "xhdcd-entry"
+    row = root["content"][0]
+    assert row["tag"] == "span" and row["data"]["content"] == "first-row-parent"
+    terms = row["content"][0]
+    assert terms["tag"] == "span" and terms["data"]["content"] == "terms-parent"
+    badges = terms["content"] + row["content"][1:]
+    return [(value.get("data", {}).get("content"), value.get("content")) for value in badges]
 
 
 def test_numbered_headword_reading_variant_without_duplicate_pinyin_or_citation():

@@ -8,9 +8,10 @@ book/page citations are omitted; inline image positions show a short notice.
 Each entry displays traditional and simplified headword badges, including when
 both forms have the same spelling. Explicit source variants take precedence when
 they unambiguously map back to the simplified headword; otherwise OpenCC supplies
-the traditional form.
+the traditional form. The badges sit beside Yomitan's dictionary name, as in
+HYDCD, with the definition below them.
 
-The stylesheet follows the badge, header, sense-number, and collapsible-example
+The stylesheet follows the badge, sense-number, and collapsible-example
 design of [hydcd-yomitan](https://github.com/caocaochan/hydcd-yomitan). It is packaged in the ZIP and
 does not depend on that project at build or import time.
 

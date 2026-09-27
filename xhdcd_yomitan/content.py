@@ -159,6 +159,20 @@ def traditional_forms(expression: str, variants: list[str]) -> tuple[list[str], 
     return forms, used_indices
 
 
+def headword_row(traditional: list[str], simplified: str, homograph: str = "",
+                 variants: list[str] | None = None, invalid_pinyin: str = "") -> dict[str, Any]:
+    badges = [node("span", value, "traditional-term") for value in traditional]
+    badges.append(node("span", simplified, "simplified-term"))
+    if variants:
+        badges.extend(node("span", value, "variant-term") for value in variants)
+    content: list[Any] = [node("span", badges, "terms-parent")]
+    if homograph:
+        content.append(node("span", homograph, "homograph-number"))
+    if invalid_pinyin:
+        content.append(node("span", invalid_pinyin, "pinyin"))
+    return node("span", content, "first-row-parent")
+
+
 def _convert_children(el: etree._Element, stats: ParseStats) -> list[Any]:
     result: list[Any] = []
     if el.text:
@@ -318,9 +332,9 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
         stats.sample(stats.warnings, f"{source_key}: {exc}")
         text = nfc(re.sub(r"<[^>]*>", "", raw)) or "（无可显示释义）"
         traditional, _ = traditional_forms(source_key, [])
-        header = node("div", [node("span", value, "traditional-term") for value in traditional] +
-                      [node("span", source_key, "simplified-term")], "header")
-        glossary = [{"type": "structured-content", "content": node("div", [header, node("div", text, "paragraph")], "xhdcd-entry", lang="zh-Hans")}]
+        glossary = [{"type": "structured-content", "content": node("span", [
+            headword_row(traditional, source_key), node("div", text, "paragraph")
+        ], "xhdcd-entry", lang="zh-Hans")}]
         return ParsedEntry(source_key, source_key, [""], glossary, [])
 
     hw = find_class(root, "hw")
@@ -340,16 +354,10 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
             stats.counts["ambiguous_variants_displayed"] += 1
 
     traditional, traditional_variant_indices = traditional_forms(expression, variants)
-    header: list[Any] = [node("span", value, "traditional-term") for value in traditional]
-    header.append(node("span", expression, "simplified-term"))
-    if sup:
-        header.append(node("span", sup, "homograph-number"))
-    for index, variant in enumerate(variants):
-        if index not in traditional_variant_indices and variant:
-            header.append(node("span", variant, "variant-term"))
-    if original_pinyin and readings == [""]:
-        header.append(node("span", original_pinyin, "pinyin"))
-    content: list[Any] = [node("div", header, "header")]
+    extra_variants = [variant for index, variant in enumerate(variants)
+                      if index not in traditional_variant_indices and variant]
+    content: list[Any] = [headword_row(traditional, expression, sup, extra_variants,
+                                      original_pinyin if readings == [""] else "")]
     body = find_class(root, "contents")
     if body is not None:
         content.extend(_body_blocks(body, stats))
@@ -363,5 +371,5 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
     if len(content) == 1:
         content.append(node("div", IMAGE_NOTICE if "<img" in raw.lower() else "（无可显示释义）", "paragraph"))
         stats.counts["empty_definitions"] += 1
-    glossary = [{"type": "structured-content", "content": node("div", content, "xhdcd-entry", lang="zh-Hans")}]
+    glossary = [{"type": "structured-content", "content": node("span", content, "xhdcd-entry", lang="zh-Hans")}]
     return ParsedEntry(source_key, expression, readings, glossary, aliases)
