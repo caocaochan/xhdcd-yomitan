@@ -159,6 +159,10 @@ def traditional_forms(expression: str, variants: list[str]) -> tuple[list[str], 
     return forms, used_indices
 
 
+def traditional_aliases(expression: str, forms: list[str]) -> list[str]:
+    return [form for form in forms if form and form != expression]
+
+
 def headword_row(traditional: list[str], simplified: str, homograph: str = "",
                  variants: list[str] | None = None, invalid_pinyin: str = "") -> dict[str, Any]:
     badges = [node("span", value, "traditional-term") for value in traditional]
@@ -335,7 +339,9 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
         glossary = [{"type": "structured-content", "content": node("span", [
             headword_row(traditional, source_key), node("div", text, "paragraph")
         ], "xhdcd-entry", lang="zh-Hans")}]
-        return ParsedEntry(source_key, source_key, [""], glossary, [])
+        aliases = traditional_aliases(source_key, traditional)
+        stats.counts["generated_traditional_aliases"] += len(aliases)
+        return ParsedEntry(source_key, source_key, [""], glossary, aliases)
 
     hw = find_class(root, "hw")
     expression = _text_without_sup(hw) or source_key
@@ -354,6 +360,10 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
             stats.counts["ambiguous_variants_displayed"] += 1
 
     traditional, traditional_variant_indices = traditional_forms(expression, variants)
+    for alias in traditional_aliases(expression, traditional):
+        if alias not in aliases:
+            aliases.append(alias)
+            stats.counts["generated_traditional_aliases"] += 1
     extra_variants = [variant for index, variant in enumerate(variants)
                       if index not in traditional_variant_indices and variant]
     content: list[Any] = [headword_row(traditional, expression, sup, extra_variants,

@@ -56,6 +56,23 @@ def test_traditional_and_simplified_badges_are_always_present():
         entry = parse_record(expression, raw, ParseStats())
         assert header_badges(entry) == [("traditional-term", traditional),
                                         ("simplified-term", expression)]
+        assert entry.aliases == ([traditional] if traditional != expression else [])
+
+
+def test_generated_traditional_form_is_a_lookup_alias():
+    stats = ParseStats()
+    entry = parse_record("记录", '<span class="hw">记录</span>'
+                         '<div class="contents"><p>载录；记载。</p></div>', stats)
+    assert header_badges(entry) == [("traditional-term", "記錄"),
+                                    ("simplified-term", "记录")]
+    assert entry.aliases == ["記錄"]
+    assert stats.counts["generated_traditional_aliases"] == 1
+    # OpenCC conversion is not always reversible, but the displayed form must
+    # still work as a lookup key.
+    entry = parse_record("极坐标", '<span class="hw">极坐标</span>'
+                         '<div class="contents"><p>一种坐标系。</p></div>', ParseStats())
+    assert header_badges(entry)[0] == ("traditional-term", "極座標")
+    assert entry.aliases == ["極座標"]
 
 
 def test_internal_links_are_queries_and_images_are_omitted():
@@ -104,7 +121,8 @@ def test_malformed_markup_keeps_text_and_invalid_pinyin_is_visible():
 def test_ambiguous_variants_remain_display_only():
     entry = parse_record("亩", '<span class="hw">亩</span><span class="yitizi">畝𤰜晦</span>'
                          '<div class="contents"><p>土地面积单位。</p></div>', ParseStats())
-    assert entry.aliases == []
+    assert entry.aliases == ["畝"]
+    assert "畝𤰜晦" not in entry.aliases
     assert header_badges(entry) == [("traditional-term", "畝"), ("simplified-term", "亩"),
                                     ("variant-term", "畝𤰜晦")]
     assert any(isinstance(x, str) and x == "畝𤰜晦" for x in walk(entry.glossary))

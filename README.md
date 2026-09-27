@@ -58,8 +58,9 @@ row counts, omitted-content counts, and unresolved-reading/link samples.
 - `@@@LINK=` redirects resolve to the linked definition. A single clearly
   delimited variant form becomes a lookup alias; combined or ambiguous variant
   strings remain visible without speculative aliases.
-- Generated traditional badges are display forms; lookup aliases still come
-  from unambiguous source variants.
+- Every displayed traditional form is also a lookup alias. OpenCC's conversion
+  can be context-sensitive, so some generated aliases may produce additional
+  matches. Ambiguous source variant strings remain display-only.
 - Source pinyin is normalized to NFC and `ɡ` is mapped to `g` for readings.
   Valid pinyin appears only as Yomitan's reading, not again in the definition.
   Invalid pinyin remains visible in the header while its Yomitan reading is
