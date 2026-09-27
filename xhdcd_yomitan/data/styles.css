@@ -1,0 +1,22 @@
+[data-sc-content="xhdcd-entry"] { font-family: sans-serif; line-height: 1.55; }
+[data-sc-content="header"] { background: color-mix(in srgb, currentColor 8%, transparent); border-radius: .35em; margin: .2em 0 .55em; padding: .35em .55em; }
+[data-sc-content="simplified-term"], [data-sc-content="variant-term"] { background: #111; border: 1px solid #454545; border-radius: 4px; display: inline-block; font-size: 1.1em; line-height: 1; margin-right: 6px; padding: 4px; }
+[data-sc-content="simplified-term"] { color: #257de4; }
+[data-sc-content="variant-term"] { color: #e42566; }
+[data-sc-content="homograph-number"] { color: #8d735f; font-size: .75em; margin-left: -.3em; margin-right: .7em; vertical-align: super; }
+[data-sc-content="pinyin"] { color: #a14a4a; display: inline-block; margin-left: .25em; }
+[data-sc-content="sense"] { margin: .45em 0; }
+[data-sc-content="sense-number"] { background: #8d735f; border-radius: 999px; color: white; display: inline-block; font-size: .82em; margin-right: .45em; min-width: 1.5em; padding: 0 .25em; text-align: center; }
+[data-sc-content="paragraph"] { margin: .35em 0; }
+[data-sc-content="subnumber"] { color: #8d735f; }
+[data-sc-content="examples"] { margin: .35em 0 .6em .4em; opacity: .94; }
+[data-sc-content="examples"] > summary { color: #8d735f; cursor: pointer; font-size: .88em; }
+[data-sc-content="example"] { border-left: .16em solid color-mix(in srgb, currentColor 18%, transparent); margin: .35em 0; padding-left: .55em; }
+[data-sc-content="usage-note"], [data-sc-content="source"] { opacity: .72; }
+[data-sc-content="source"] { border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; margin-top: .65em; padding-top: .3em; }
+[data-sc-content="book-title"] { font-style: italic; }
+[data-sc-content="emphasis"] { font-weight: bold; }
+[data-sc-content="italic"] { font-style: italic; }
+[data-sc-content="superscript"] { font-size: .75em; vertical-align: super; }
+[data-sc-content="subscript"] { font-size: .75em; vertical-align: sub; }
+[data-sc-content="etymology"] { color: #4f73a8; margin: .3em 0; }

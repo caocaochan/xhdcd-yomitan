@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xhdcd-yomitan"
+version = "1.0.0"
+description = "Text-only Yomitan converter for 现代汉语大词典（图文综合版）"
+requires-python = ">=3.12"
+dependencies = [
+    "jsonschema==4.25.1",
+    "lxml==6.0.2",
+    "mdict-utils==1.3.14",
+]
+
+[project.optional-dependencies]
+test = ["pytest==8.4.2"]
+
+[tool.setuptools.package-data]
+xhdcd_yomitan = ["data/*.css", "schemas/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

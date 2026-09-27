@@ -1,0 +1,15 @@
+/outputs/
+/input/
+/现代汉语大词典*
+/XHDCD.css
+/hei_xdhy_py.woff
+/.agents/
+/.codex/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.egg-info/
+*.pyc
+*.db
+.env
+.env.*
