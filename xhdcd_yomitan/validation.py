@@ -94,6 +94,8 @@ def validate_dictionary(path: Path) -> dict[str, Any]:
     counts: Counter[str] = Counter()
     expressions: set[str] = set()
     links: set[str] = set()
+    indexed_lookups: set[tuple[int, str, str]] = set()
+    displayed_traditional: set[tuple[int, str, str]] = set()
     index_schema = Draft7Validator(_schema("dictionary-index-schema.json"))
     term_schema_data = _schema("dictionary-term-bank-v3-schema.json")
     term_schema = Draft7Validator(term_schema_data)
@@ -151,6 +153,11 @@ def validate_dictionary(path: Path) -> dict[str, Any]:
                 if not isinstance(expression, str):
                     continue
                 expressions.add(expression)
+                sequence = row[6]
+                reading = row[1]
+                if (isinstance(sequence, int) and not isinstance(sequence, bool) and
+                        isinstance(reading, str)):
+                    indexed_lookups.add((sequence, reading, expression))
                 if is_page_key(expression):
                     errors.append(f"{bank_name}[{row_number}]: scanned-page lookup retained")
                 glossary = row[5]
@@ -167,8 +174,18 @@ def validate_dictionary(path: Path) -> dict[str, Any]:
                     if not isinstance(root, dict) or root.get("lang") != "zh-Hans":
                         errors.append(f"{bank_name}[{row_number}]: missing zh-Hans root")
                     _check_content(root, f"{bank_name}[{row_number}]", allowed_tags, errors, counts)
+                    traditional_in_row = 0
                     for value in _walk(root):
                         if isinstance(value, dict):
+                            data = value.get("data")
+                            if isinstance(data, dict) and data.get("content") == "traditional-term":
+                                form = value.get("content")
+                                if (isinstance(form, str) and form and isinstance(sequence, int) and
+                                        not isinstance(sequence, bool) and isinstance(reading, str)):
+                                    displayed_traditional.add((sequence, reading, form))
+                                    traditional_in_row += 1
+                                else:
+                                    errors.append(f"{bank_name}[{row_number}]: invalid traditional badge")
                             tag = value.get("tag")
                             if tag == "a":
                                 href = value.get("href", "")
@@ -176,11 +193,18 @@ def validate_dictionary(path: Path) -> dict[str, Any]:
                                     target = parse_qs(urlsplit(href).query).get("query", [""])[0]
                                     if target:
                                         links.add(target)
+                    if not traditional_in_row:
+                        errors.append(f"{bank_name}[{row_number}]: no traditional badge")
                 if len(errors) >= 100:
                     break
             if len(errors) >= 100:
                 break
     missing_links = sorted(links - expressions)
+    missing_traditional = sorted(displayed_traditional - indexed_lookups)
+    for sequence, reading, form in missing_traditional[:max(0, 100 - len(errors))]:
+        errors.append(f"Source record {sequence}: traditional badge {form!r} with reading {reading!r} has no lookup row")
+    counts["traditional_lookup_forms"] = len(displayed_traditional)
+    counts["missing_traditional_lookup_forms"] = len(missing_traditional)
     counts["internal_link_targets"] = len(links)
     counts["unresolved_internal_link_targets"] = len(missing_links)
     return {"valid": not errors, "dictionary": str(path), "counts": dict(sorted(counts.items())),

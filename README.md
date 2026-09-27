@@ -71,7 +71,9 @@ row counts, omitted-content counts, and unresolved-reading/link samples.
 The ZIP uses Yomitan format 3, with `index.json`, `styles.css`, and
 `term_bank_*.json` at the archive root. Validation checks every bank and
 structured-content node against schema-derived rules, and checks three rows per bank with
-the official JSON Schema implementation. The format schemas are copied from
+the official JSON Schema implementation. It also verifies that every displayed
+traditional form has a lookup row for each reading of its source entry. The
+format schemas are copied from
 the [Yomitan project](https://github.com/yomidevs/yomitan/tree/master/ext/data/schemas).
 
 The public source release and generated dictionary contain material from the
