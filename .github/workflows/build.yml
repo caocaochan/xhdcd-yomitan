@@ -1,0 +1,108 @@
+name: Build dictionary
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      PYTHONUNBUFFERED: '1'
+      PIP_DISABLE_PIP_VERSION_CHECK: '1'
+    steps:
+      - name: Check out converter
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-lock.txt
+
+      - name: Install locked dependencies
+        run: python -m pip install -r requirements-lock.txt
+
+      - name: Test converter
+        timeout-minutes: 5
+        run: python -m pytest
+
+      - name: Download and verify pinned MDX
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .github/scripts/fetch_inputs.py
+
+      - name: Build dictionary
+        timeout-minutes: 10
+        env:
+          XHDCD_RELEASE_REVISION: 2023.7.11.${{ github.run_number }}.${{ github.run_attempt }}
+          XHDCD_UPDATE_REPOSITORY: ${{ github.repository }}
+        run: python -m xhdcd_yomitan build --input input --output outputs/xhdcd-yomitan-text.zip
+
+      - name: Validate every bank and structured node
+        timeout-minutes: 10
+        run: python -m xhdcd_yomitan validate outputs/xhdcd-yomitan-text.zip --report outputs/xhdcd-validation-report.json
+
+      - name: Prepare update index and release reports
+        run: python .github/scripts/prepare_release.py
+
+      - name: Upload validated build artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: xhdcd-yomitan-${{ github.sha }}
+          path: |
+            outputs/xhdcd-yomitan-text.zip
+            outputs/index.json
+            outputs/xhdcd-conversion-report.json
+            outputs/xhdcd-validation-report.json
+            outputs/build-info.json
+            outputs/SHA256SUMS
+            outputs/release-notes.md
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download validated build artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: xhdcd-yomitan-${{ github.sha }}
+          path: outputs
+
+      - name: Verify dictionary checksum
+        working-directory: outputs
+        run: sha256sum --check SHA256SUMS
+
+      - name: Publish dictionary release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          tag="build-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          revision="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("outputs/index.json").read_text(encoding="utf-8"))["revision"])')"
+          gh release create "$tag" \
+            outputs/xhdcd-yomitan-text.zip \
+            outputs/index.json \
+            outputs/xhdcd-conversion-report.json \
+            outputs/xhdcd-validation-report.json \
+            outputs/build-info.json \
+            outputs/SHA256SUMS \
+            --target "$GITHUB_SHA" \
+            --latest \
+            --title "XHDCD text build ${revision}" \
+            --notes-file outputs/release-notes.md
