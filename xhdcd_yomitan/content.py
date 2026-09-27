@@ -5,10 +5,12 @@ import unicodedata
 from dataclasses import dataclass, field
 from collections import Counter
 from copy import deepcopy
+from functools import lru_cache
 from typing import Any
 from urllib.parse import quote, unquote
 
 from lxml import etree, html
+from opencc import OpenCC
 
 
 IMAGE_NOTICE = "（原条目含图片，文本版未收录）"
@@ -135,6 +137,26 @@ def unambiguous_variant(value: str, expression: str) -> str | None:
     if any(unicodedata.category(char)[0] not in {"L"} for char in value):
         return None
     return value
+
+
+@lru_cache(maxsize=2)
+def _opencc(config: str) -> OpenCC:
+    return OpenCC(config)
+
+
+def traditional_forms(expression: str, variants: list[str]) -> tuple[list[str], set[int]]:
+    forms: list[str] = []
+    used_indices: set[int] = set()
+    to_simplified = _opencc("t2s.json")
+    for index, variant in enumerate(variants):
+        candidate = unambiguous_variant(variant, expression)
+        if candidate and nfc(to_simplified.convert(candidate)) == expression:
+            if candidate not in forms:
+                forms.append(candidate)
+            used_indices.add(index)
+    if not forms:
+        forms.append(nfc(_opencc("s2t.json").convert(expression)) or expression)
+    return forms, used_indices
 
 
 def _convert_children(el: etree._Element, stats: ParseStats) -> list[Any]:
@@ -287,7 +309,10 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
         stats.counts["malformed_records"] += 1
         stats.sample(stats.warnings, f"{source_key}: {exc}")
         text = nfc(re.sub(r"<[^>]*>", "", raw)) or "（无可显示释义）"
-        glossary = [{"type": "structured-content", "content": node("div", [node("span", source_key, "simplified-term"), text], "xhdcd-entry", lang="zh-Hans")}]
+        traditional, _ = traditional_forms(source_key, [])
+        header = node("div", [node("span", value, "traditional-term") for value in traditional] +
+                      [node("span", source_key, "simplified-term")], "header")
+        glossary = [{"type": "structured-content", "content": node("div", [header, node("div", text, "paragraph")], "xhdcd-entry", lang="zh-Hans")}]
         return ParsedEntry(source_key, source_key, [""], glossary, [])
 
     hw = find_class(root, "hw")
@@ -306,11 +331,14 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
         elif variant and variant != expression:
             stats.counts["ambiguous_variants_displayed"] += 1
 
-    header: list[Any] = [node("span", expression, "simplified-term")]
+    traditional, traditional_variant_indices = traditional_forms(expression, variants)
+    header: list[Any] = [node("span", value, "traditional-term") for value in traditional]
+    header.append(node("span", expression, "simplified-term"))
     if sup:
         header.append(node("span", sup, "homograph-number"))
-    for variant in variants:
-        header.append(node("span", variant, "variant-term"))
+    for index, variant in enumerate(variants):
+        if index not in traditional_variant_indices and variant:
+            header.append(node("span", variant, "variant-term"))
     if original_pinyin and readings == [""]:
         header.append(node("span", original_pinyin, "pinyin"))
     content: list[Any] = [node("div", header, "header")]

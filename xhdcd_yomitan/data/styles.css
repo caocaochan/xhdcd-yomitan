@@ -1,8 +1,9 @@
 [data-sc-content="xhdcd-entry"] { font-family: sans-serif; line-height: 1.55; }
 [data-sc-content="header"] { background: color-mix(in srgb, currentColor 8%, transparent); border-radius: .35em; margin: .2em 0 .55em; padding: .35em .55em; }
-[data-sc-content="simplified-term"], [data-sc-content="variant-term"] { background: #111; border: 1px solid #454545; border-radius: 4px; display: inline-block; font-size: 1.1em; line-height: 1; margin-right: 6px; padding: 4px; }
+[data-sc-content="traditional-term"], [data-sc-content="simplified-term"], [data-sc-content="variant-term"] { background: #111; border: 1px solid #454545; border-radius: 4px; display: inline-block; font-size: 1.1em; line-height: 1; margin-right: 6px; padding: 4px; }
+[data-sc-content="traditional-term"] { color: #e42566; }
 [data-sc-content="simplified-term"] { color: #257de4; }
-[data-sc-content="variant-term"] { color: #e42566; }
+[data-sc-content="variant-term"] { color: #9b709e; }
 [data-sc-content="homograph-number"] { color: #8d735f; font-size: .75em; margin-left: -.3em; margin-right: .7em; vertical-align: super; }
 [data-sc-content="pinyin"] { color: #a14a4a; display: inline-block; margin-left: .25em; }
 [data-sc-content="sense"] { margin: .45em 0; }

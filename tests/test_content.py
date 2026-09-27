@@ -13,6 +13,12 @@ def walk(value):
             yield from walk(child)
 
 
+def header_badges(entry):
+    header = next(value for value in walk(entry.glossary)
+                  if isinstance(value, dict) and value.get("data", {}).get("content") == "header")
+    return [(value.get("data", {}).get("content"), value.get("content")) for value in header["content"]]
+
+
 def test_numbered_headword_reading_variant_without_duplicate_pinyin_or_citation():
     raw = ('<span class="hw">万<sup>1</sup></span><div class="ohw">'
            '<span class="pinyin">wàn</span><span class="yitizi">萬</span></div>'
@@ -23,12 +29,28 @@ def test_numbered_headword_reading_variant_without_duplicate_pinyin_or_citation(
     assert entry.expression == "万"
     assert entry.readings == ["wàn"]
     assert entry.aliases == ["萬"]
+    assert header_badges(entry) == [("traditional-term", "萬"), ("simplified-term", "万"),
+                                    ("homograph-number", "1")]
     nodes = list(walk(entry.glossary))
     assert sum(isinstance(x, dict) and x.get("data", {}).get("content") == "sense" for x in nodes) == 2
     assert any(isinstance(x, dict) and x.get("tag") == "details" and x.get("open") is False for x in nodes)
     assert "wàn" not in nodes
     assert not any(isinstance(x, str) and "第0060页" in x for x in nodes)
     assert not any(isinstance(x, dict) and x.get("tag") == "a" for x in nodes)
+
+
+def test_traditional_and_simplified_badges_are_always_present():
+    cases = [
+        ("学习", "", "學習"),
+        ("一", "", "一"),
+        ("发", '<span class="yitizi">髮</span>', "髮"),
+    ]
+    for expression, variant, traditional in cases:
+        raw = (f'<span class="hw">{expression}</span>{variant}'
+               '<div class="contents"><p>释义。</p></div>')
+        entry = parse_record(expression, raw, ParseStats())
+        assert header_badges(entry) == [("traditional-term", traditional),
+                                        ("simplified-term", expression)]
 
 
 def test_internal_links_are_queries_and_images_are_omitted():
@@ -62,6 +84,8 @@ def test_ambiguous_variants_remain_display_only():
     entry = parse_record("亩", '<span class="hw">亩</span><span class="yitizi">畝𤰜晦</span>'
                          '<div class="contents"><p>土地面积单位。</p></div>', ParseStats())
     assert entry.aliases == []
+    assert header_badges(entry) == [("traditional-term", "畝"), ("simplified-term", "亩"),
+                                    ("variant-term", "畝𤰜晦")]
     assert any(isinstance(x, str) and x == "畝𤰜晦" for x in walk(entry.glossary))
 
 

@@ -5,6 +5,10 @@ importable, text-only Yomitan dictionary. It does not read the MDD archives.
 The conversion keeps definitions, Yomitan readings, examples, variant headwords,
 and internal term links. Scanned-page entries, inline images, and printed
 book/page citations are omitted; inline image positions show a short notice.
+Each entry displays traditional and simplified headword badges, including when
+both forms have the same spelling. Explicit source variants take precedence when
+they unambiguously map back to the simplified headword; otherwise OpenCC supplies
+the traditional form.
 
 The stylesheet follows the badge, header, sense-number, and collapsible-example
 design of [hydcd-yomitan](https://github.com/caocaochan/hydcd-yomitan). It is packaged in the ZIP and
@@ -53,6 +57,8 @@ row counts, omitted-content counts, and unresolved-reading/link samples.
 - `@@@LINK=` redirects resolve to the linked definition. A single clearly
   delimited variant form becomes a lookup alias; combined or ambiguous variant
   strings remain visible without speculative aliases.
+- Generated traditional badges are display forms; lookup aliases still come
+  from unambiguous source variants.
 - Source pinyin is normalized to NFC and `ɡ` is mapped to `g` for readings.
   Valid pinyin appears only as Yomitan's reading, not again in the definition.
   Invalid pinyin remains visible in the header while its Yomitan reading is

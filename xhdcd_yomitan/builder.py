@@ -219,7 +219,7 @@ def build_dictionary(input_root: Path, output: Path) -> dict[str, Any]:
             "format": 3,
             "sequenced": True,
             "author": "上海辞书出版社；MDX 图文综合版由 AlexPeng 制作",
-            "description": "从用户提供的图文综合版转换。保留释义、读音、例证、异体字和内部参见；不包含扫描页、图片或印刷页码。",
+            "description": "从用户提供的图文综合版转换。显示繁简字形，保留释义、读音、例证、异体字和内部参见；不包含扫描页、图片或印刷页码。",
             "attribution": "原词典内容版权归原权利人所有；本转换器不授予重新分发原词典数据的权利。",
             "sourceLanguage": "zh",
             "targetLanguage": "zh",
