@@ -231,18 +231,26 @@ def _is_br(value: Any) -> bool:
 def _group_examples(values: list[Any]) -> list[Any]:
     result: list[Any] = []
     pending: list[Any] = []
+
+    def flush_examples() -> None:
+        nonlocal pending
+        if not pending:
+            return
+        while result and (_is_br(result[-1]) or
+                          (isinstance(result[-1], str) and not result[-1].strip())):
+            result.pop()
+        result.append(node("details", [node("summary", "例证"), node("div", pending)], "examples", open=False))
+        pending = []
+
     for item in values:
         if _is_example(item):
             pending.append(node("div", item.get("content", []), "example"))
             continue
         if pending and _is_br(item):
             continue
-        if pending:
-            result.append(node("details", [node("summary", "例证"), node("div", pending)], "examples", open=False))
-            pending = []
+        flush_examples()
         append(result, item)
-    if pending:
-        result.append(node("details", [node("summary", "例证"), node("div", pending)], "examples", open=False))
+    flush_examples()
     while result and _is_br(result[-1]):
         result.pop()
     return result

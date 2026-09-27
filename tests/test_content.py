@@ -66,6 +66,22 @@ def test_internal_links_are_queries_and_images_are_omitted():
     assert not any(isinstance(x, dict) and x.get("tag") == "img" for x in nodes)
 
 
+def test_examples_do_not_inherit_source_line_breaks_before_them():
+    raw = ('<span class="hw">吃螃蟹</span><div class="contents"><p>'
+           '指敢于做前人不敢做的事。<yuchu>语出鲁迅《今春的两种感想》。</yuchu>'
+           '<br><br><span class="ru">例句一。</span><br><span class="ru">例句二。</span>'
+           '</p></div>')
+    entry = parse_record("吃螃蟹", raw, ParseStats())
+    paragraphs = [value for value in walk(entry.glossary)
+                  if isinstance(value, dict) and value.get("data", {}).get("content") == "paragraph"]
+    body = next(value["content"] for value in paragraphs if isinstance(value.get("content"), list))
+    assert [item.get("data", {}).get("content") for item in body if isinstance(item, dict)] == [
+        "etymology", "examples"]
+    details = body[-1]
+    assert details["tag"] == "details"
+    assert len(details["content"][1]["content"]) == 2
+
+
 def test_malformed_markup_keeps_text_and_invalid_pinyin_is_visible():
     stats = ParseStats()
     raw = ('<span class="hw">疑词</span><span class="pinyin">〈口〉</span>'
