@@ -51,8 +51,8 @@ def main() -> None:
         f"Import `{ZIP.name}` into Yomitan. The ZIP is {ZIP.stat().st_size / 1_000_000:.2f} MB; "
         f"its uncompressed contents are {uncompressed_bytes / 1_000_000:.2f} MB.", "",
         f"- {report['output']['term_rows']:,} term rows in {report['output']['term_banks']} banks",
-        "- Definitions, pinyin, examples, variants, term links, and printed page citations retained",
-        "- Scanned pages and inline images omitted",
+        "- Definitions, Yomitan readings, examples, variants, and term links retained",
+        "- Scanned pages, inline images, and printed page citations omitted",
         "- Source, ZIP, and validation checksums recorded in the attached reports", "",
         "This public build uses the pinned MDX asset in the source release. "
         "Original dictionary content remains subject to its rights holders.",

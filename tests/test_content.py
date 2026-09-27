@@ -13,7 +13,7 @@ def walk(value):
             yield from walk(child)
 
 
-def test_numbered_headword_reading_variant_and_citation():
+def test_numbered_headword_reading_variant_without_duplicate_pinyin_or_citation():
     raw = ('<span class="hw">万<sup>1</sup></span><div class="ohw">'
            '<span class="pinyin">wàn</span><span class="yitizi">萬</span></div>'
            '<div class="contents"><p>❶ 数词。<br><span class="ru">如：一万。</span>'
@@ -26,7 +26,8 @@ def test_numbered_headword_reading_variant_and_citation():
     nodes = list(walk(entry.glossary))
     assert sum(isinstance(x, dict) and x.get("data", {}).get("content") == "sense" for x in nodes) == 2
     assert any(isinstance(x, dict) and x.get("tag") == "details" and x.get("open") is False for x in nodes)
-    assert "《现代汉语大词典上册》第0060页" in nodes
+    assert "wàn" not in nodes
+    assert not any(isinstance(x, str) and "第0060页" in x for x in nodes)
     assert not any(isinstance(x, dict) and x.get("tag") == "a" for x in nodes)
 
 

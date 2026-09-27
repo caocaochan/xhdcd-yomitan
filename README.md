@@ -2,9 +2,9 @@
 
 This project converts `现代汉语大词典（图文综合版）.mdx` into an
 importable, text-only Yomitan dictionary. It does not read the MDD archives.
-The conversion keeps definitions, source pinyin, examples, variant headwords,
-internal term links, and printed book/page citations. Scanned-page entries and
-all inline images are omitted; inline image positions show a short notice.
+The conversion keeps definitions, Yomitan readings, examples, variant headwords,
+and internal term links. Scanned-page entries, inline images, and printed
+book/page citations are omitted; inline image positions show a short notice.
 
 The stylesheet follows the badge, header, sense-number, and collapsible-example
 design of [hydcd-yomitan](https://github.com/caocaochan/hydcd-yomitan). It is packaged in the ZIP and
@@ -54,6 +54,7 @@ row counts, omitted-content counts, and unresolved-reading/link samples.
   delimited variant form becomes a lookup alias; combined or ambiguous variant
   strings remain visible without speculative aliases.
 - Source pinyin is normalized to NFC and `ɡ` is mapped to `g` for readings.
+  Valid pinyin appears only as Yomitan's reading, not again in the definition.
   Invalid pinyin remains visible in the header while its Yomitan reading is
   empty and recorded in the report.
 - The original MDX contains some dead term references. These remain visible as

@@ -280,14 +280,6 @@ def _body_blocks(el: etree._Element, stats: ParseStats) -> list[Any]:
     return blocks
 
 
-def _source_citation(ref: etree._Element | None) -> str:
-    if ref is None:
-        return ""
-    text = nfc("".join(ref.itertext()))
-    text = re.sub(r"（\s*\d+\s*字\s*）", "", text)
-    return nfc(text)
-
-
 def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
     try:
         root = html.fragment_fromstring(raw.replace("\x00", ""), create_parent="div")
@@ -319,7 +311,7 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
         header.append(node("span", sup, "homograph-number"))
     for variant in variants:
         header.append(node("span", variant, "variant-term"))
-    if original_pinyin:
+    if original_pinyin and readings == [""]:
         header.append(node("span", original_pinyin, "pinyin"))
     content: list[Any] = [node("div", header, "header")]
     body = find_class(root, "contents")
@@ -335,8 +327,5 @@ def parse_record(source_key: str, raw: str, stats: ParseStats) -> ParsedEntry:
     if len(content) == 1:
         content.append(node("div", IMAGE_NOTICE if "<img" in raw.lower() else "（无可显示释义）", "paragraph"))
         stats.counts["empty_definitions"] += 1
-    source = _source_citation(find_class(root, "ref"))
-    if source:
-        content.append(node("div", source, "source"))
     glossary = [{"type": "structured-content", "content": node("div", content, "xhdcd-entry", lang="zh-Hans")}]
     return ParsedEntry(source_key, expression, readings, glossary, aliases)

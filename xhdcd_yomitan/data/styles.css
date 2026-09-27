@@ -12,8 +12,7 @@
 [data-sc-content="examples"] { margin: .35em 0 .6em .4em; opacity: .94; }
 [data-sc-content="examples"] > summary { color: #8d735f; cursor: pointer; font-size: .88em; }
 [data-sc-content="example"] { border-left: .16em solid color-mix(in srgb, currentColor 18%, transparent); margin: .35em 0; padding-left: .55em; }
-[data-sc-content="usage-note"], [data-sc-content="source"] { opacity: .72; }
-[data-sc-content="source"] { border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-size: .85em; margin-top: .65em; padding-top: .3em; }
+[data-sc-content="usage-note"] { opacity: .72; }
 [data-sc-content="book-title"] { font-style: italic; }
 [data-sc-content="emphasis"] { font-weight: bold; }
 [data-sc-content="italic"] { font-style: italic; }
